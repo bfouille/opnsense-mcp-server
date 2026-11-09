@@ -85,6 +85,19 @@ class TestToolRegistration:
             "opn_haproxy_update",
             "opn_haproxy_delete",
             "opn_haproxy_configtest",
+            # Caddy
+            "opn_caddy_status",
+            "opn_caddy_general",
+            "opn_caddy_search",
+            "opn_caddy_get",
+            "opn_caddy_caddyfile",
+            "opn_reconfigure_caddy",
+            "opn_caddy_add",
+            "opn_caddy_update",
+            "opn_caddy_delete",
+            "opn_caddy_toggle",
+            "opn_caddy_set_general",
+            "opn_caddy_add_service",
             # Services
             "opn_list_acme_certs",
             "opn_list_cron_jobs",
@@ -111,4 +124,4 @@ class TestToolRegistration:
         from opnsense_mcp.server import mcp
 
         tools = await mcp.list_tools()
-        assert len(tools) == 81, f"Expected 81 tools, got {len(tools)}"
+        assert len(tools) == 93, f"Expected 93 tools, got {len(tools)}"

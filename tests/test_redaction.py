@@ -102,3 +102,32 @@ class TestConfigSectionRedaction:
 
         assert [c for c in _CANARIES if c in dumped] == []
         assert [v for v in _VISIBLE if v not in dumped] == []
+
+
+class TestSystemSectionRegression:
+    """Secrets that opn_get_config_section('system') returned on 0.4.0 (live report, 2026-11)."""
+
+    _SYSTEM = (
+        "<opnsense><system><hostname>VISIBLE-fw</hostname>"
+        "<user><name>VISIBLE-root</name><otp_seed>CANARY-otp</otp_seed>"
+        "<authorizedkeys>CANARY-authkeys</authorizedkeys>"
+        "<apikeys><item><key>CANARY-apikey</key><secret>CANARY-apikey-hash</secret></item></apikeys>"
+        "</user>"
+        "<backup><git><url>VISIBLE-git-url</url><privkey>CANARY-git-privkey</privkey>"
+        "<password>CANARY-git-password</password></git></backup>"
+        "</system></opnsense>"
+    )
+
+    async def test_system_section_secrets_redacted(self, mock_api, mock_ctx):
+        from opnsense_mcp.tools.system import opn_get_config_section
+
+        mock_api.get_text = AsyncMock(return_value=self._SYSTEM)
+        mock_api.get = AsyncMock(return_value={"product_version": "26.7", "product_name": "OPNsense"})
+        mock_api.post = AsyncMock(return_value={"rows": [], "rowCount": 0})
+
+        result = await opn_get_config_section(mock_ctx, section="system")
+        dumped = json.dumps(result)
+
+        assert "CANARY" not in dumped
+        for visible in ("VISIBLE-fw", "VISIBLE-root", "VISIBLE-git-url"):
+            assert visible in dumped
