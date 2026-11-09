@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Caddy (os-caddy) tools — 12 new tools (81 → 93):** `opn_caddy_status`, `opn_caddy_general`,
+  `opn_caddy_search`, `opn_caddy_get`, `opn_caddy_caddyfile` (read), and `opn_caddy_add`,
+  `opn_caddy_update`, `opn_caddy_delete`, `opn_caddy_toggle`, `opn_caddy_set_general`,
+  `opn_caddy_add_service`, `opn_reconfigure_caddy` (write-gated). Resource types: domains,
+  subdomains, handlers, access lists, layer4 routes. `opn_caddy_add_service` creates a subdomain
+  and its catch-all handler in one call and removes the subdomain again if the handler fails.
+- Secrets never leave the Caddy tools: sensitive fields are redacted at any depth,
+  `opn_caddy_general` returns an allowlist of five fields, the Caddyfile is scrubbed of the DNS
+  API key, bcrypt hashes and key blocks, and `opn_caddy_set_general` refuses secret fields.
+- Every Caddy POST sends a JSON body (`{}` when empty): the Caddy API answers an empty body with
+  HTTP 400 "Invalid JSON syntax".
+- Regression test: `opn_get_config_section("system")` redacts API key secrets, `otp_seed`,
+  `authorizedkeys` and the git-backup `privkey`/`password`, which 0.4.0 returned.
+
 ## [0.4.2] - 2026-11-03
 
 ### Security

@@ -2,7 +2,7 @@
 
 A secure [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server for managing OPNsense firewalls through AI assistants like [Claude Code](https://docs.anthropic.com/en/docs/claude-code), Cursor, and other MCP-compatible tools.
 
-**81 tools** across 10 domains: system, firewall, network, DNS, DHCP, VPN, HAProxy, services, diagnostics, and security.
+**93 tools** across 11 domains: system, firewall, network, DNS, DHCP, VPN, HAProxy, Caddy, services, diagnostics, and security.
 
 ## Requirements
 
@@ -139,7 +139,7 @@ Add to your Cursor MCP settings (Settings > MCP):
 
 **Custom ports:** If your OPNsense web GUI runs on a non-standard port (e.g., 10443), include it in the URL: `https://192.168.1.1:10443/api`
 
-## Available Tools (81)
+## Available Tools (93)
 
 ### System (7 tools)
 
@@ -247,6 +247,29 @@ Full configuration management for the HAProxy load balancer (requires os-haproxy
 
 > **Note:** HAProxy changes do NOT use savepoint protection — they apply immediately on reconfigure. Always call `opn_haproxy_configtest` before `opn_reconfigure_haproxy`.
 
+### Caddy (12 tools)
+
+Reverse proxy management for the Caddy plugin (requires os-caddy, tested with 2.2.x on OPNsense 26.7).
+Resource types: `domains`, `subdomains`, `handlers`, `access_lists`, `layer4`. Secret fields (DNS-provider API key,
+basic-auth hashes, OpenVPN static keys) are redacted from every read tool, including the generated Caddyfile.
+
+| Tool | Description | Writes |
+| --- | --- | --- |
+| `opn_caddy_status` | Caddy service status | No |
+| `opn_caddy_general` | Non-secret general settings only: `enabled`, `EnableLayer4`, `HttpPort`, `HttpsPort`, `DisableSuperuser` | No |
+| `opn_caddy_search` | Search Caddy resources by type. Params: `resource_type`, `search`, `limit` | No |
+| `opn_caddy_get` | Get every field of one resource. Params: `resource_type`, `uuid` | No |
+| `opn_caddy_caddyfile` | The generated Caddyfile (secrets redacted) | No |
+| `opn_caddy_add` | Create a resource. Params: `resource_type`, `config` | Yes |
+| `opn_caddy_update` | Update a resource (partial). Params: `resource_type`, `uuid`, `config` | Yes |
+| `opn_caddy_delete` | Delete a resource. Params: `resource_type`, `uuid` | Yes |
+| `opn_caddy_toggle` | Flip a resource between enabled and disabled. Params: `resource_type`, `uuid` | Yes |
+| `opn_caddy_set_general` | Change general settings (refuses secret fields). Params: `config` | Yes |
+| `opn_caddy_add_service` | Publish a service in one call: subdomain + catch-all handler, optional access list; rolls back the subdomain if the handler fails. Params: `fqdn`, `to_host`, `to_port`, `tls` (http/https/h2c), `insecure_skip_verify`, `access_list`, `domain`, `description` | Yes |
+| `opn_reconfigure_caddy` | Apply pending Caddy configuration changes | Yes |
+
+> **Note:** Caddy write tools do not apply anything by themselves and do not use savepoints: call `opn_reconfigure_caddy`, then check `opn_caddy_caddyfile`.
+
 ### Services (11 tools)
 
 | Tool | Description | Writes |
@@ -293,7 +316,7 @@ On those versions, if an AI assistant makes a bad firewall change that locks you
 
 > **Warning:** On OPNsense 26.7+ take a config backup (`opn_download_config`, or System > Configuration > Backups) before enabling writes, and keep out-of-band access to the box — a rule that locks you out will not revert itself.
 
-> **Note:** `opn_reconfigure_unbound`, `opn_reconfigure_haproxy`, `opn_reconfigure_ddclient`, `opn_reconfigure_dnsmasq`, and `opn_configure_mdns_repeater` require writes but don't use savepoints — they apply service configuration changes and are not automatically revertible.
+> **Note:** `opn_reconfigure_unbound`, `opn_reconfigure_haproxy`, `opn_reconfigure_caddy`, `opn_reconfigure_ddclient`, `opn_reconfigure_dnsmasq`, and `opn_configure_mdns_repeater` require writes but don't use savepoints — they apply service configuration changes and are not automatically revertible.
 
 ## IPv6 Support
 

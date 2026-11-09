@@ -92,6 +92,7 @@ def get_savepoint_manager(ctx: Context) -> SavepointManager:
 
 # Import tool modules to register their @mcp.tool() decorators.
 from opnsense_mcp.tools import (  # noqa: E402
+    caddy,  # noqa: F401
     dhcp,  # noqa: F401
     diagnostics,  # noqa: F401
     dns,  # noqa: F401
